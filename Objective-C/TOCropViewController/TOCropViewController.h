@@ -153,18 +153,6 @@
 @property (nonatomic, assign) TOCropViewControllerAspectRatioPreset aspectRatioPreset;
 
 /**
- A CGSize value representing a custom aspect ratio, not listed in the presets.
- E.g. A ratio of 4:3 would be represented as (CGSize){4.0f, 3.0f}
- */
-@property (nonatomic, assign) CGSize customAspectRatio;
-
-/**
- If this is set alongside `customAspectRatio`, the custom aspect ratio
- will be shown as a selectable choice in the list of aspect ratios. (Default is `nil`)
- */
-@property (nullable, nonatomic, copy) NSString *customAspectRatioName;
-
-/**
  Title label which can be used to show instruction on the top of the crop view controller
  */
 @property (nullable, nonatomic, readonly) UILabel *titleLabel;
@@ -321,10 +309,9 @@
 @property (nullable, nonatomic, strong) NSArray<UIActivityType> *excludedActivityTypes;
 
 /**
- An array of `TOCropViewControllerAspectRatioPreset` enum values denoting which
- aspect ratios the crop view controller may display (Default is nil. All are shown)
+ Contains the array describing the proportion cutting object, the key is the ttile, the value is the NSStringFromCGSize
  */
-@property (nullable, nonatomic, strong) NSArray<NSNumber *> *allowedAspectRatios;
+@property (nullable, nonatomic, strong) NSArray<NSDictionary<NSString*, NSString*>*>*allowedAspectRatios;
 
 /**
  When the user hits cancel, or completes a

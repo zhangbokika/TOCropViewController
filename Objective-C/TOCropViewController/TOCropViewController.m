@@ -599,25 +599,17 @@ static const CGFloat kTOCropViewControllerToolbarHeight = 44.0f;
     NSMutableArray *itemStrings = [NSMutableArray array];
 
     if (self.allowedAspectRatios == nil) {
-        for (NSInteger i = 0; i < TOCropViewControllerAspectRatioPresetCustom; i++) {
+        for (NSInteger i = 0; i <= TOCropViewControllerAspectRatioPreset16x9; i++) {
             NSString *itemTitle = verticalCropBox ? portraitRatioTitles[i] : landscapeRatioTitles[i];
             [itemStrings addObject:itemTitle];
             [ratioValues addObject:@(i)];
         }
     }
     else {
-        for (NSNumber *allowedRatio in self.allowedAspectRatios) {
-            TOCropViewControllerAspectRatioPreset ratio = allowedRatio.integerValue;
-            NSString *itemTitle = verticalCropBox ? portraitRatioTitles[ratio] : landscapeRatioTitles[ratio];
-            [itemStrings addObject:itemTitle];
-            [ratioValues addObject:allowedRatio];
+        for (NSDictionary *allowedRatio in self.allowedAspectRatios) {
+            [itemStrings addObject:allowedRatio.allKeys.firstObject];
+            [ratioValues addObject:allowedRatio.allValues.firstObject];
         }
-    }
-    
-    // If a custom aspect ratio is provided, and a custom name has been given to it, add it as a visible choice
-    if (self.customAspectRatioName.length > 0 && !CGSizeEqualToSize(CGSizeZero, self.customAspectRatio)) {
-        [itemStrings addObject:self.customAspectRatioName];
-        [ratioValues addObject:@(TOCropViewControllerAspectRatioPresetCustom)];
     }
 
     UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
@@ -626,8 +618,15 @@ static const CGFloat kTOCropViewControllerToolbarHeight = 44.0f;
     //Add each item to the alert controller
     for (NSInteger i = 0; i < itemStrings.count; i++) {
         id handlerBlock = ^(UIAlertAction *action) {
-            [self setAspectRatioPreset:[ratioValues[i] integerValue] animated:YES];
-            self.aspectRatioLockEnabled = YES;
+            if ([ratioValues[i] isKindOfClass:[NSString class]]) {
+                CGSize ratio = CGSizeFromString(ratioValues[i]);
+                if (!CGSizeEqualToSize(self.cropView.aspectRatio, ratio)) {
+                    [self.cropView setAspectRatio:ratio animated:YES];
+                }
+            } else {
+                [self setAspectRatioPreset:[ratioValues[i] integerValue] animated:YES];
+            }
+//            self.aspectRatioLockEnabled = YES;
         };
         UIAlertAction *action = [UIAlertAction actionWithTitle:itemStrings[i] style:UIAlertActionStyleDefault handler:handlerBlock];
         [alertController addAction:action];
@@ -670,9 +669,6 @@ static const CGFloat kTOCropViewControllerToolbarHeight = 44.0f;
             break;
         case TOCropViewControllerAspectRatioPreset16x9:
             aspectRatio = CGSizeMake(16.0f, 9.0f);
-            break;
-        case TOCropViewControllerAspectRatioPresetCustom:
-            aspectRatio = self.customAspectRatio;
             break;
     }
     
@@ -1213,12 +1209,6 @@ static const CGFloat kTOCropViewControllerToolbarHeight = 44.0f;
     if (!self.aspectRatioPickerButtonHidden) {
         self.aspectRatioPickerButtonHidden = (resetAspectRatioEnabled == NO && self.aspectRatioLockEnabled);
     }
-}
-
-- (void)setCustomAspectRatio:(CGSize)customAspectRatio
-{
-    _customAspectRatio = customAspectRatio;
-    [self setAspectRatioPreset:TOCropViewControllerAspectRatioPresetCustom animated:NO];
 }
 
 - (BOOL)resetAspectRatioEnabled
